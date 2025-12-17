@@ -1,4 +1,5 @@
 # RH‑SecureSearch – Protótipo de Searchable Symmetric Encryption
+![1765995670897](image/logo.jpg)
 
 Protótipo académico de um sistema de pesquisa por palavra‑chave sobre dados cifrados, baseado em Searchable Symmetric Encryption (SSE), aplicado a um dataset de Recursos Humanos com salários mensais. O objetivo é demonstrar como um servidor não confiável consegue processar pesquisas sem acesso aos dados pessoais em claro, alinhado com os princípios do RGPD. [file:207]
 
