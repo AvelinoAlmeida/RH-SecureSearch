@@ -47,7 +47,72 @@ Este desenho separa claramente a **aplicação com chave** (cliente) da **infrae
   - `flask`
   - `requests`
   - `cryptography`
+Sugestão de `.gitignore` (não incluir dados sensíveis nem artefactos gerados):
 
-Sugestão de `requirements.txt`:
+## Estrutura do repositório
+![1765993147662](image/README/1765993147662.png)
+
+## Como correr a demo
+
+### 1. Instalar dependências
+pip install -r requirements.txt
+
+### 2. Arrancar o servidor (não confiável)
+python app.py
+O servidor fica, por omissão, em `http://127.0.0.1:5000/`.
+
+### 3. Construir o índice e enviar dados cifrados (lado cliente)
+Noutro terminal, na raiz do projeto: 
+python client.py build-and-upload docs/employee_salary_dataset.csv
+
+Este passo:
+
+- gera (ou reutiliza) `master.key` no cliente  
+- lê o CSV de RH  
+- cifra cada registo  
+- constrói o índice SSE  
+- faz upload cifrado para o servidor  
+- regista tempos de build e upload em `storage/stats/metrics.csv`.
+
+### 4. Efetuar pesquisas seguras (lado cliente)
+Exemplo de pesquisa por departamento:
+python client.py search "Marketing"
+
+
+O cliente:
+
+- gera trapdoor para “Marketing”  
+- envia trapdoor ao servidor  
+- recebe os documentos cifrados correspondentes  
+- descifra localmente e mostra frases como:
+
+> Funcionario emp_500 trabalha no departamento Marketing ... salario mensal 121752.
+
+Também regista tempos de pesquisa em `metrics.csv`.
+
+### 5. Explorar as vistas web (lado servidor)
+
+No browser:
+
+- `http://127.0.0.1:5000/`  
+  - “Vista do servidor”: pequena pesquisa ilustrativa e explicação de que o servidor não tem acesso aos salários em claro.  
+- `http://127.0.0.1:5000/stats`  
+  - Tabela com trapdoors e nº de vezes pesquisadas, ilustrando leakage de padrão de pesquisa (o servidor aprende que certos trapdoors são frequentes, mas não sabe a palavra original).  
+- `http://127.0.0.1:5000/metrics`  
+  - Tabela com tempos de build, upload e pesquisa, para análise de desempenho e comparação com pesquisa em claro.  
+
+---
+
+## Limitações e trabalho futuro
+
+- O esquema SSE usado é básico (trapdoors independentes por keyword, sem otimizações avançadas de estrutura de dados).  
+- Não cobre ataques de inferência mais sofisticados baseados em correlação entre padrões de acesso e distribuição de termos.  
+- O cliente é um script de linha de comando; poderia evoluir para uma aplicação com interface gráfica ou integração numa aplicação web separada, mantendo sempre a chave apenas no lado cliente. [file:207]
+
+Este protótipo serve como base experimental para o relatório do trabalho prático, onde se discute a literatura sobre SSE, o impacto em desempenho, riscos de leakage e implicações de privacidade no contexto do RGPD. [file:207]
+
+
+
+
 
 
