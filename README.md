@@ -1,5 +1,5 @@
 # RH‑SecureSearch – Protótipo de Searchable Symmetric Encryption
-![Logotipo](image/readme/logo.png)
+![Logotipo](image/logo.png)
 
 Protótipo de um sistema de pesquisa por palavra‑chave sobre dados cifrados, baseado em Searchable Symmetric Encryption (SSE), aplicado a um dataset exemplo de Recursos Humanos com salários mensais. O objetivo é demonstrar como um servidor não confiável consegue processar pesquisas sem acesso aos dados pessoais em claro, alinhado com os princípios do RGPD. [file:207]
 
@@ -51,7 +51,7 @@ Este desenho separa claramente a **aplicação com chave** (cliente) da **infrae
 Sugestão de `.gitignore` (não incluir dados sensíveis nem artefactos gerados):
 
 ## Estrutura do repositório
-![1765993147662](image/README/1765993147662.png)
+![Estrutura](image/1765993147662.png)
 
 ## Como correr a demo
 
