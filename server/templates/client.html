@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <title>RH-SecureSearch - Vista do cliente</title>
+  </head>
+  <body>
+    <h1>RH-SecureSearch - Vista do cliente</h1>
+    <p>Aqui a lógica de descifra (chave) está do lado do cliente, não do servidor.</p>
+
+    <form method="POST" action="/client">
+      <input type="text" name="term" placeholder="trapdoor hex" value="{{ term or '' }}">
+      <button type="submit">Pesquisar (cliente)</button>
+    </form>
+
+    {% if term %}
+      <p>Trapdoor submetido: <code>{{ term }}</code></p>
+      {% if docs %}
+        <h2>Documentos decifrados (lado cliente)</h2>
+        {% for doc_id, text in docs.items() %}
+        <h3>{{ doc_id }}</h3>
+        <pre>{{ text }}</pre>
+        {% endfor %}
+      {% else %}
+        <p>Sem resultados ou não foi possível descifrar com a chave de demo.</p>
+      {% endif %}
+    {% endif %}
+
+    <hr>
+    <p><a href="/">Voltar à vista do servidor</a></p>
+  </body>
+</html>

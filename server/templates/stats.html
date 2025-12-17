@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <title>Leakage de pesquisa (trapdoors)</title>
+  </head>
+  <body>
+    <h1>Leakage de pesquisa (trapdoors)</h1>
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>Trapdoor (HMAC-SHA256)</th>
+        <th>Nº pesquisas</th>
+      </tr>
+      {% for t, c in rows %}
+      <tr>
+        <td style="font-family: monospace; font-size: 0.8em;">{{ t }}</td>
+        <td>{{ c }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p><a href="/">Voltar</a></p>
+  </body>
+</html>

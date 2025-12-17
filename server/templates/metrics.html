@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <title>Métricas de desempenho</title>
+  </head>
+  <body>
+    <h1>Métricas de desempenho</h1>
+    {% if headers %}
+      <table border="1" cellpadding="5">
+        <tr>
+          {% for h in headers %}
+          <th>{{ h }}</th>
+          {% endfor %}
+        </tr>
+        {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>Ainda não existem métricas registadas. Corre o cliente (build-and-upload / search) primeiro.</p>
+    {% endif %}
+    <p><a href="/">Voltar</a></p>
+  </body>
+</html>

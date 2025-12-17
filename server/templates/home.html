@@ -1,0 +1,42 @@
+<!-- templates/home.html -->
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <title>RH-SecureSearch - Servidor</title>
+  </head>
+  <body>
+    <h1>RH-SecureSearch</h1>
+
+    <h2>Pesquisa (vista do servidor)</h2>
+    <p>O servidor só conhece trapdoors e IDs de documentos, nunca vê salários em claro.</p>
+
+    <form method="POST" action="/">
+      <input type="text" name="term" placeholder="trapdoor hex ou emp_001" value="{{ term or '' }}">
+      <button type="submit">Pesquisar</button>
+    </form>
+
+    {% if term %}
+      <p>Termo submetido: <strong>{{ term }}</strong></p>
+      {% if results %}
+        <p>IDs de documentos associados (sem descifrar):</p>
+        <ul>
+          {% for d in results %}
+          <li>{{ d }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Sem resultados para este termo no índice do servidor.</p>
+      {% endif %}
+    {% endif %}
+
+    <h2>Leakage (servidor)</h2>
+    <p><a href="/stats">Ver padrões de pesquisa (trapdoors)</a></p>
+
+    <h2>Métricas</h2>
+    <p><a href="/metrics">Ver métricas de desempenho</a></p>
+
+    <hr>
+    <p><a href="/client">Ir para a vista do cliente (simulada)</a></p>
+  </body>
+</html>
