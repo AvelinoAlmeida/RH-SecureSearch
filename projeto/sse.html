@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RH-SecureSearch | SSE (Protótipo)</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="./assets/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="./index.html">
+        <i class="bi bi-shield-lock"></i> RH-SecureSearch
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="./index.html">Início</a></li>
+          <li class="nav-item"><a class="nav-link active" href="./sse.html">SSE (Protótipo)</a></li>
+          <li class="nav-item"><a class="nav-link" href="./dados.html">Dados</a></li>
+          <li class="nav-item"><a class="nav-link" href="./artigos.html">Artigos</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <img class="hero-logo" src="../static/image/logo.png" alt="Logo RH-SecureSearch">
+    <h1 class="hero-title">SSE (Protótipo)</h1>
+    <p class="hero-subtitle">
+      Pesquisa por palavras-chave sobre documentos cifrados. O servidor é considerado <strong>não confiável</strong> e nunca recebe chaves.
+    </p>
+
+    <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
+      <a class="btn btn-outline-light" href="../" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Servidor demo</a>
+      <a class="btn btn-outline-light" href="../metrics" target="_blank" rel="noopener"><i class="bi bi-speedometer2"></i> Métricas</a>
+      <a class="btn btn-outline-light" href="../stats" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Leakage</a>
+    </div>
+  </div>
+
+  <main class="container py-4">
+    <div class="section-header">
+      <h2 class="section-title">O que o protótipo faz</h2>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-laptop"></i> Lado do Cliente</div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>Gera uma <strong>chave mestra</strong> e deriva chaves para trapdoors e cifra.</li>
+              <li>Cifra documentos com <strong>AES-GCM</strong> (o salário pode estar no texto cifrado).</li>
+              <li>Constrói um índice invertido <span class="mono">trapdoor → [docIds]</span>.</li>
+              <li>Para pesquisar, gera trapdoor com <strong>HMAC-SHA256</strong> e envia ao servidor.</li>
+              <li>Recebe IDs (e/ou ciphertexts), faz fetch e <strong>descifra localmente</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-cloud"></i> Lado do Servidor (não confiável)</div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>Armazena apenas <strong>docs cifrados</strong> e o índice por trapdoors.</li>
+              <li>Ao receber um trapdoor, devolve <strong>docIds</strong> correspondentes (lookup no índice).</li>
+              <li>Não possui chaves, não descifra, não vê salários em claro.</li>
+              <li>Regista leakage: frequência de pesquisas por trapdoor.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-diagram-3"></i> Fluxo do sistema (passo a passo)</div>
+      <div class="card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-label">1) Build & Index (cliente)</div>
+            <p>O cliente lê o CSV, cria documentos, extrai keywords, gera trapdoors e cifra o conteúdo.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">2) Upload (cliente → servidor)</div>
+            <p>O cliente envia o índice e os blobs cifrados. O servidor guarda sem conseguir ler.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">3) Search (cliente → servidor)</div>
+            <p>O cliente envia um trapdoor. O servidor só vê um token hex, nunca o termo em claro.</p>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-label">4) Resposta (servidor → cliente)</div>
+            <p>O servidor devolve docIds. O cliente faz fetch dos ciphertexts e descifra localmente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-shield-check"></i> O que o servidor NÃO aprende</div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>Conteúdo dos documentos (salários, etc.).</li>
+              <li>Palavras pesquisadas (“Marketing”, “Lisboa”…).</li>
+              <li>Chaves de cifra/descifra.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-eye"></i> Leakage observado (assumido)</div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li><strong>Padrão</strong>: repetição do mesmo trapdoor.</li>
+              <li><strong>Frequência</strong>: nº de pesquisas por trapdoor.</li>
+              <li><strong>Tamanho</strong>: nº de docIds devolvidos (result size).</li>
+            </ul>
+            <div class="mt-2">
+              <span class="badge badge-soft">Isto é inerente a SSE básico — não é bug.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-speedometer2"></i> Métricas e comparação</div>
+      <div class="card-body">
+        <p class="mb-2">
+          Para avaliação séria, separamos o custo em componentes:
+        </p>
+        <ul class="mb-0">
+          <li><strong>Tempo search</strong>: consulta por trapdoor (IDs).</li>
+          <li><strong>Tempo fetch</strong>: transferência de ciphertexts.</li>
+          <li><strong>Tempo decrypt</strong>: descifra local.</li>
+          <li>Comparação com <strong>pesquisa em claro</strong> e análise com percentis (p50/p95/p99).</li>
+        </ul>
+
+        <div class="mt-3 d-flex flex-wrap gap-2">
+          <a class="btn btn-outline-light" href="./dados.html"><i class="bi bi-database"></i> Ver dados e experiências</a>
+          <a class="btn btn-outline-light" href="./artigos.html"><i class="bi bi-book"></i> Ver artigos</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-chat-left-quote"></i> Frase para fechar na apresentação</div>
+      <div class="card-body">
+        “O servidor mantém-se cego ao conteúdo e aos termos, mas observamos leakage de padrão; o protótipo mede o custo real dessa proteção.”
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>RH-SecureSearch · SSE (Protótipo) · Site de apresentação</div>
+    <div class="mt-2">
+      <a href="./index.html">Início</a> ·
+      <a href="./dados.html">Dados</a> ·
+      <a href="./artigos.html">Artigos</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

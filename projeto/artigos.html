@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RH-SecureSearch | Artigos</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="./assets/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="./index.html"><i class="bi bi-shield-lock"></i> RH-SecureSearch</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="./index.html">Início</a></li>
+          <li class="nav-item"><a class="nav-link" href="./sse.html">SSE (Protótipo)</a></li>
+          <li class="nav-item"><a class="nav-link" href="./dados.html">Dados</a></li>
+          <li class="nav-item"><a class="nav-link active" href="./artigos.html">Artigos</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <img class="hero-logo" src="../static/image/logo.png" alt="Logo RH-SecureSearch">
+    <h1 class="hero-title">Artigos utilizados</h1>
+    <p class="hero-subtitle">
+      Base teórica para SSE, leakage e trade-offs (pesquisa cifrada vs desempenho).
+      Cada entrada tem link direto para a página oficial do artigo.
+    </p>
+  </div>
+
+  <main class="container py-4">
+    <div class="section-header">
+      <h2 class="section-title"><i class="bi bi-book"></i> Lista de referências</h2>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Pesquisar na lista</div>
+      <div class="card-body">
+        <input class="form-control" id="q" placeholder="Filtrar por título, autores, ano, conferência..." onkeyup="filterRefs()" />
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Artigos</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Autores</th>
+                <th>Ano</th>
+                <th>Fonte</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="refsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <span class="badge badge-soft">Nota</span>
+      <div class="mt-2">
+        Se o docente perguntar “que artigo sustenta o leakage?”, aponta para surveys SSE e para trabalhos que discutem padrões/ORAM como mitigação.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>RH-SecureSearch · Artigos e Referências</div>
+    <div class="mt-2"><a href="./index.html">Voltar ao início</a></div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Links confirmados em fontes oficiais (ACM/Springer/ScienceDirect/NDSS).
+    const refs = [
+      {
+        title: "A Survey of Provably Secure Searchable Encryption",
+        authors: "Christoph Bösch; Pieter Hartel; Willem Jonker; Andreas Peter",
+        year: 2014,
+        venue: "ACM Computing Surveys (CSUR)",
+        url: "https://dl.acm.org/doi/10.1145/2636328"
+      },
+      {
+        title: "Privacy Preserving Keyword Searches on Remote Encrypted Data",
+        authors: "Yan-Cheng Chang; Michael Mitzenmacher",
+        year: 2005,
+        venue: "ACNS 2005 (Springer LNCS)",
+        url: "https://link.springer.com/chapter/10.1007/11496137_30"
+      },
+      {
+        title: "A survey on security issues in service delivery models of cloud computing",
+        authors: "S. Subashini; V. Kavitha",
+        year: 2011,
+        venue: "Journal of Network and Computer Applications (ScienceDirect)",
+        url: "https://www.sciencedirect.com/science/article/pii/S1084804510001281"
+      },
+      {
+        title: "Dynamic Searchable Encryption in Very-Large Databases: Data Structures and Implementation",
+        authors: "David Cash; Joseph Jaeger; Stanislaw Jarecki; Charanjit Jutla; Hugo Krawczyk; M.-C. Roșu; Michael Steiner",
+        year: 2014,
+        venue: "NDSS Symposium",
+        url: "https://www.ndss-symposium.org/ndss2014/ndss-2014-programme/dynamic-searchable-encryption-very-large-databases-data-structures-and-implementation/"
+      },
+      {
+        title: "Practical Techniques for Searches on Encrypted Data",
+        authors: "Dawn Xiaodong Song; David Wagner; Adrian Perrig",
+        year: 2000,
+        venue: "IEEE Symposium on Security and Privacy (PDF)",
+        url: "https://people.eecs.berkeley.edu/~dawnsong/papers/se.pdf"
+      }
+    ];
+
+    function render(list) {
+      const body = document.getElementById("refsBody");
+      body.innerHTML = "";
+      list.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${r.title}</strong></td>
+          <td>${r.authors}</td>
+          <td>${r.year}</td>
+          <td>${r.venue}</td>
+          <td>
+            <a class="btn btn-sm btn-custom" href="${r.url}" target="_blank" rel="noopener">
+              <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function filterRefs() {
+      const q = document.getElementById("q").value.toLowerCase();
+      const filtered = refs.filter(r =>
+        (r.title + " " + r.authors + " " + r.year + " " + r.venue).toLowerCase().includes(q)
+      );
+      render(filtered);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => render(refs));
+  </script>
+</body>
+</html>

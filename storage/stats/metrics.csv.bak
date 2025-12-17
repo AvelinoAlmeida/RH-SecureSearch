@@ -1,0 +1,14 @@
+Termo,Nº funcionários,Nº docs retornados,Tempo pesquisa (s),Tempo build (s),Tempo upload (s)
+,50,,,0.007,0.053
+,500,,,0.066,0.325
+Marketing,,130,1.417,,
+HR,,0,0.021,,
+Employee_15,,0,0.017,,
+emp_15,,0,0.018,,
+emp_001,,1,0.057,,
+,50,,,0.018,0.072
+,500,,,0.075,0.528
+Marketing,,130,1.277,,
+Marketing (plain),,13,0.000,,
+Marketing (plain),,130,0.002,,
+Marketing,,130,0.035,,

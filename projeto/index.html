@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RH-SecureSearch | Apresentação</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="./assets/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="./index.html">
+        <i class="bi bi-shield-lock"></i> RH-SecureSearch
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="./index.html">Início</a></li>
+          <li class="nav-item"><a class="nav-link" href="./sse.html">SSE (Protótipo)</a></li>
+          <li class="nav-item"><a class="nav-link" href="./dados.html">Dados</a></li>
+          <li class="nav-item"><a class="nav-link" href="./artigos.html">Artigos</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <img class="hero-logo" src="../static/image/logo.png" alt="Logo RH-SecureSearch">
+    <h1 class="hero-title">RH-SecureSearch</h1>
+    <p class="hero-subtitle">
+      Pesquisa sobre dados sensíveis de Recursos Humanos <strong>sem expor salários</strong> nem conteúdo ao servidor.
+      Demonstração prática de <strong>Searchable Symmetric Encryption (SSE)</strong> com métricas e análise de leakage.
+    </p>
+
+    <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
+      <a class="btn btn-custom" href="./sse.html"><i class="bi bi-search"></i> Ver SSE (Protótipo)</a>
+      <a class="btn btn-outline-light" href="./dados.html"><i class="bi bi-database"></i> Dados</a>
+      <a class="btn btn-outline-light" href="./artigos.html"><i class="bi bi-book"></i> Artigos</a>
+      <a class="btn btn-outline-light" href="../" target="_blank" rel="noopener">
+        <i class="bi bi-box-arrow-up-right"></i> Abrir servidor demo
+      </a>
+    </div>
+  </div>
+
+  <main class="container py-4">
+    <div class="section-header">
+      <h2 class="section-title">Que problemas resolvemos</h2>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Servidor não confiável</div>
+          <div class="card-body">
+            Em cloud, o servidor pode ser “curioso” ou comprometido. Não assumimos confiança no armazenamento nem no operador.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-lock"></i> Dados sensíveis (RH)</div>
+          <div class="card-body">
+            Salários e atributos pessoais não devem estar acessíveis em claro no backend. A confidencialidade tem de ser garantida por desenho.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-search"></i> Pesquisa sem revelar termos</div>
+          <div class="card-body">
+            Precisamos pesquisar por keywords sem enviar “Marketing”, “Lisboa” ou “salário” em claro para o servidor.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-graph-up"></i> Medir trade-offs</div>
+          <div class="card-body">
+            Segurança não é só teoria: medimos custo real (search/fetch/decrypt) e observamos leakage (padrões de pesquisa).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header"><i class="bi bi-bullseye"></i> Objetivo do protótipo</div>
+          <div class="card-body">
+            Provar que é possível suportar pesquisa em dados cifrados, mantendo a chave no cliente, e demonstrar claramente:
+            <ul class="mt-2 mb-0">
+              <li><strong>Confidencialidade</strong>: o servidor não vê salários nem documentos em claro.</li>
+              <li><strong>Pesquisa funcional</strong>: devolve resultados relevantes a partir de trapdoors.</li>
+              <li><strong>Transparência</strong>: leakage e métricas ficam visíveis e mensuráveis.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header"><i class="bi bi-check2-circle"></i> Mensagem para defesa</div>
+          <div class="card-body">
+            <span class="badge badge-soft">Frase-chave</span>
+            <p class="mt-2 mb-0">
+              “Pesquisamos em dados sensíveis sem confiar no servidor: ele vê apenas trapdoors e IDs; a descifra é sempre do lado do cliente.”
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-diagram-3"></i> O que vais mostrar na demo</div>
+          <div class="card-body">
+            <ol class="mb-0">
+              <li>Build & Upload (dados cifrados + índice)</li>
+              <li>Pesquisa SSE (trapdoor → docIds)</li>
+              <li>Descifra no cliente (resultados em claro só no cliente)</li>
+              <li>Leakage (frequência de trapdoors)</li>
+              <li>Métricas (p50/p95/p99 por operação)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-link-45deg"></i> Acesso rápido</div>
+          <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-light" href="../metrics" target="_blank" rel="noopener"><i class="bi bi-speedometer2"></i> /metrics</a>
+              <a class="btn btn-outline-light" href="../stats" target="_blank" rel="noopener"><i class="bi bi-eye"></i> /stats</a>
+              <a class="btn btn-outline-light" href="../client" target="_blank" rel="noopener"><i class="bi bi-laptop"></i> /client</a>
+              <a class="btn btn-outline-light" href="../" target="_blank" rel="noopener"><i class="bi bi-cloud"></i> /</a>
+            </div>
+            <div class="mt-3" style="color: #94a3b8;">
+              Estes links funcionam quando estiveres a abrir o site via Flask.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div>RH-SecureSearch · Apresentação (site) · Dados e Privacidade</div>
+    <div class="mt-2">
+      <a href="./sse.html">SSE (Protótipo)</a> ·
+      <a href="./dados.html">Dados</a> ·
+      <a href="./artigos.html">Artigos</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

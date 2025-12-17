@@ -1,14 +1,20 @@
-Termo,Nº funcionários,Nº docs retornados,Tempo pesquisa (s),Tempo build (s),Tempo upload (s)
-,50,,,0.007,0.053
-,500,,,0.066,0.325
-Marketing,,130,1.417,,
-HR,,0,0.021,,
-Employee_15,,0,0.017,,
-emp_15,,0,0.018,,
-emp_001,,1,0.057,,
-,50,,,0.018,0.072
-,500,,,0.075,0.528
-Marketing,,130,1.277,,
-Marketing (plain),,13,0.000,,
-Marketing (plain),,130,0.002,,
-Marketing,,130,0.035,,
+TS,Operação,Termo,Nº funcionários,Nº docs retornados,Tempo total (s),Tempo search (s),Tempo fetch (s),Tempo decrypt (s),Tempo build (s),Tempo upload (s)
+,,,50,,,,,,0.007,0.053
+,,,500,,,,,,0.066,0.325
+,,Marketing,,130,1.417,,,,,
+,,HR,,0,0.021,,,,,
+,,Employee_15,,0,0.017,,,,,
+,,emp_15,,0,0.018,,,,,
+,,emp_001,,1,0.057,,,,,
+,,,50,,,,,,0.018,0.072
+,,,500,,,,,,0.075,0.528
+,,Marketing,,130,1.277,,,,,
+,,Marketing (plain),,13,0.000,,,,,
+,,Marketing (plain),,130,0.002,,,,,
+,,Marketing,,130,0.035,,,,,
+2025-12-17T20:09:21.448992,build_upload,,50,,,,,,0.029176,0.070808
+2025-12-17T20:09:48.649936,build_upload,,500,,,,,,0.073584,0.334956
+2025-12-17T20:09:58.644192,build_upload,,5000,,,,,,1.814967,3.314536
+2025-12-17T20:10:59.353666,search_sse,Marketing,,1300,36.070100,0.043257,36.005510,0.021333,,
+2025-12-17T20:12:40.371446,search_sse,Lisboa,,0,0.022966,0.022963,0.000001,0.000002,,
+2025-12-17T20:15:23.612099,search_sse,emp_761,,1,0.063084,0.024786,0.036792,0.001506,,
