@@ -1528,3 +1528,5 @@ ts_iso,method,path,status_code,duration_ms,remote_addr
 2025-12-17T21:50:03.851170,GET,/stats,200,50.24,127.0.0.1
 2025-12-17T21:50:03.860944,GET,/static/image/logo.png,304,0.498,127.0.0.1
 2025-12-17T21:50:03.992224,GET,/static/image/logo.png,304,0.66,127.0.0.1
+2025-12-17T21:50:52.009789,GET,/static/image/logo.png,304,0.419,127.0.0.1
+2025-12-17T21:50:53.409905,GET,/static/image/logo.png,304,0.468,127.0.0.1
