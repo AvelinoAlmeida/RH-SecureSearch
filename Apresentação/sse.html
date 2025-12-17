@@ -11,7 +11,7 @@
 
   <script>
     // Default alinhado com server.py. Override opcional:
-    //  - file:///.../sse.html?base=http://192.168.56.101:5000
+    // file:///.../sse.html?base=http://192.168.56.101:5000
     const params = new URLSearchParams(window.location.search);
     const BASE_URL = params.get("base") || "http://127.0.0.1:5000";
   </script>
@@ -38,8 +38,10 @@
     </div>
   </nav>
 
-  <div class="hero">
-    <img class="hero-logo" id="heroLogo" alt="Logo RH-SecureSearch">
+  <!-- Hero (watermark como no index) -->
+  <div class="hero hero--with-watermark">
+    <img class="hero-logo-bg" id="heroLogo" alt="Logo RH-SecureSearch">
+
     <h1 class="hero-title">SSE (Protótipo)</h1>
     <p class="hero-subtitle">
       Pesquisa por palavras-chave sobre documentos cifrados. O servidor é considerado <strong>não confiável</strong> e nunca recebe chaves.
@@ -224,8 +226,10 @@
     document.getElementById("btnMetrics").href = BASE_URL + "/metrics";
     document.getElementById("btnStats").href   = BASE_URL + "/stats";
 
-    // Logo servido pelo Flask
-    document.getElementById("heroLogo").src = BASE_URL + "/static/image/logo.png";
+    // Logo via servidor + fallback local
+    const logo = document.getElementById("heroLogo");
+    logo.src = BASE_URL + "/static/image/logo.png";
+    logo.onerror = () => { logo.src = "./assets/logo.png"; };
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

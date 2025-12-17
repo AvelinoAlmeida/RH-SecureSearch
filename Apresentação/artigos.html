@@ -18,7 +18,9 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="./index.html"><i class="bi bi-shield-lock"></i> RH-SecureSearch</a>
+      <a class="navbar-brand" href="./index.html">
+        <i class="bi bi-shield-lock"></i> RH-SecureSearch
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -33,11 +35,14 @@
     </div>
   </nav>
 
-  <div class="hero">
-    <img class="hero-logo" id="heroLogo" alt="Logo RH-SecureSearch">
+  <!-- HERO com watermark (igual às outras páginas) -->
+  <div class="hero hero--with-watermark">
+    <img class="hero-logo-bg" id="heroLogo" alt="Logo RH-SecureSearch">
+
     <h1 class="hero-title">Artigos utilizados</h1>
     <p class="hero-subtitle">
-      Base teórica para SSE, leakage e trade-offs (pesquisa cifrada vs desempenho). Cada referência tem link direto.
+      Base teórica para SSE, leakage e trade-offs (pesquisa cifrada vs desempenho).
+      Cada referência tem link direto.
     </p>
 
     <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
@@ -58,7 +63,12 @@
     <div class="card mb-4">
       <div class="card-header">Pesquisar na lista</div>
       <div class="card-body">
-        <input class="form-control" id="q" placeholder="Filtrar por título, autores, ano, conferência..." onkeyup="filterRefs()" />
+        <input
+          class="form-control"
+          id="q"
+          placeholder="Filtrar por título, autores, ano, conferência..."
+          onkeyup="filterRefs()"
+        />
       </div>
     </div>
 
@@ -85,7 +95,8 @@
     <div class="mt-4">
       <span class="badge badge-soft">Nota para defesa</span>
       <div class="mt-2">
-        Se perguntarem “o que é leakage em SSE?”, aponta para surveys SSE e para trabalhos que discutem padrões e mitigação.
+        Se perguntarem “o que é leakage em SSE?”, aponta para surveys SSE
+        e para trabalhos que discutem padrões e mitigação.
       </div>
     </div>
   </main>
@@ -96,11 +107,16 @@
   </footer>
 
   <script>
-    // Links do protótipo + logo
+    // Links do protótipo
     document.getElementById("btnServer").href = BASE_URL + "/";
     document.getElementById("btnStats").href  = BASE_URL + "/stats";
-    document.getElementById("heroLogo").src   = BASE_URL + "/static/image/logo.png";
 
+    // Logo via servidor + fallback local
+    const logo = document.getElementById("heroLogo");
+    logo.src = BASE_URL + "/static/image/logo.png";
+    logo.onerror = () => { logo.src = "./assets/logo.png"; };
+
+    // ---------- Referências ----------
     const refs = [
       {
         title: "A Survey of Provably Secure Searchable Encryption",
@@ -127,7 +143,7 @@
         title: "Practical Techniques for Searches on Encrypted Data",
         authors: "Dawn Xiaodong Song; David Wagner; Adrian Perrig",
         year: 2000,
-        venue: "IEEE Symposium on Security and Privacy (PDF)",
+        venue: "IEEE Symposium on Security and Privacy",
         url: "https://people.eecs.berkeley.edu/~dawnsong/papers/se.pdf"
       }
     ];
@@ -155,7 +171,9 @@
     function filterRefs() {
       const q = document.getElementById("q").value.toLowerCase();
       const filtered = refs.filter(r =>
-        (r.title + " " + r.authors + " " + r.year + " " + r.venue).toLowerCase().includes(q)
+        (r.title + " " + r.authors + " " + r.year + " " + r.venue)
+          .toLowerCase()
+          .includes(q)
       );
       render(filtered);
     }

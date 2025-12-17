@@ -19,7 +19,9 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="./index.html"><i class="bi bi-shield-lock"></i> RH-SecureSearch</a>
+      <a class="navbar-brand" href="./index.html">
+        <i class="bi bi-shield-lock"></i> RH-SecureSearch
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -34,12 +36,15 @@
     </div>
   </nav>
 
-  <div class="hero">
-    <img class="hero-logo" id="heroLogo" alt="Logo RH-SecureSearch">
+  <!-- HERO com watermark (igual ao index e sse) -->
+  <div class="hero hero--with-watermark">
+    <img class="hero-logo-bg" id="heroLogo" alt="Logo RH-SecureSearch">
+
     <h1 class="hero-title">Dados gerados e experiências</h1>
     <p class="hero-subtitle">
       Escalámos o dataset para <strong>50</strong>, <strong>500</strong> e <strong>5000</strong> registos para medir:
-      <strong>tempo de criação de dados cifrados (build)</strong> e <strong>tempo de pesquisa</strong> (SSE vs plain).
+      <strong>tempo de criação de dados cifrados (build)</strong> e
+      <strong>tempo de pesquisa</strong> (SSE vs plain).
     </p>
 
     <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
@@ -113,7 +118,8 @@
             <div class="mt-3">
               <span class="badge badge-soft">Mensagem para defesa</span>
               <div class="mt-2">
-                “O build cresce com N (cifrar+indexar). A pesquisa SSE tem overhead (fetch/decrypt), por isso comparamos com plain.”
+                “O build cresce com N (cifrar+indexar). A pesquisa SSE tem overhead (fetch/decrypt),
+                por isso comparamos com plain.”
               </div>
             </div>
           </div>
@@ -128,13 +134,13 @@
               <canvas id="benchChart"></canvas>
             </div>
             <div class="mt-3" style="color:#94a3b8;">
-              Se quiseres, posso adaptar para ler automaticamente o CSV (metrics.csv) e desenhar sem valores “hardcoded”.
+              Se quiseres, posso adaptar para ler automaticamente o CSV (metrics.csv)
+              e desenhar sem valores “hardcoded”.
             </div>
           </div>
         </div>
       </div>
     </div>
-
   </main>
 
   <footer>
@@ -143,12 +149,17 @@
   </footer>
 
   <script>
-    // Links do protótipo + logo
+    // Links do protótipo
     document.getElementById("btnServer").href  = BASE_URL + "/";
     document.getElementById("btnMetrics").href = BASE_URL + "/metrics";
-    document.getElementById("heroLogo").src    = BASE_URL + "/static/image/logo.png";
 
-    // Amostra de dados gerados (10 linhas)
+    // Logo via servidor + fallback local
+    const logo = document.getElementById("heroLogo");
+    logo.src = BASE_URL + "/static/image/logo.png";
+    logo.onerror = () => { logo.src = "./assets/logo.png"; };
+
+    // ---------- Código de dados (INALTERADO) ----------
+
     function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
     function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
 
@@ -157,8 +168,8 @@
     const edu = ["Secondary", "Bachelor", "Master", "PhD"];
     const genders = ["M", "F"];
 
-    const sampleRows = Array.from({length: 10}, (_, i) => ({
-      EmployeeID: (i + 1),
+    const sampleRows = Array.from({ length: 10 }, (_, i) => ({
+      EmployeeID: i + 1,
       Department: pick(depts),
       City: pick(cities),
       Education_Level: pick(edu),
@@ -180,7 +191,6 @@
       dataBody.appendChild(tr);
     });
 
-    // Benchmark (EXEMPLO) — substitui pelos vossos valores reais
     const benchmarks = [
       { n: 50,   build: 0.18, sse: 0.05, plain: 0.01 },
       { n: 500,  build: 1.65, sse: 0.09, plain: 0.04 },
@@ -199,7 +209,6 @@
       benchBody.appendChild(tr);
     });
 
-    // Gráfico
     const labels = benchmarks.map(b => String(b.n));
     const build = benchmarks.map(b => b.build);
     const sse = benchmarks.map(b => b.sse);
