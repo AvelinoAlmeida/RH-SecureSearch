@@ -11,7 +11,6 @@
 
   <script>
     // Default: localhost. Override opcional:
-    // file:///.../Apresentação/index.html?base=http://192.168.56.101:5000
     const params = new URLSearchParams(window.location.search);
     const BASE_URL = params.get("base") || "http://127.0.0.1:5000";
   </script>
@@ -46,7 +45,7 @@
 
     <h1 class="hero-title">RH-SecureSearch</h1>
     <p class="hero-subtitle">
-      Pesquisa sobre dados sensíveis de Recursos Humanos <strong>sem expor salários</strong> nem conteúdo ao servidor.
+      Pesquisa sobre dados sensíveis de Recursos Humanos <strong>sem expor por exemplo os salários</strong> nem conteúdo ao servidor.
       Demonstração prática de <strong>Searchable Symmetric Encryption (SSE)</strong> com métricas e análise de leakage.
     </p>
 
@@ -54,17 +53,12 @@
       <a class="btn btn-custom" href="./sse.html"><i class="bi bi-search"></i> Ver SSE (Protótipo)</a>
       <a class="btn btn-outline-light" href="./dados.html"><i class="bi bi-database"></i> Dados</a>
       <a class="btn btn-outline-light" href="./artigos.html"><i class="bi bi-book"></i> Artigos</a>
-
-      <!-- Protótipo demo -->
-      <a class="btn btn-outline-light" id="btnServer" target="_blank" rel="noopener">
-        <i class="bi bi-box-arrow-up-right"></i> Abrir servidor demo
-      </a>
     </div>
   </div>
 
   <main class="container py-4">
     <div class="section-header">
-      <h2 class="section-title">Que problemas resolvemos</h2>
+      <h2 class="section-title">Que problemas pretendemos resolver?</h2>
     </div>
 
     <div class="row g-4">
@@ -99,7 +93,7 @@
         <div class="card h-100">
           <div class="card-header"><i class="bi bi-graph-up"></i> Medir trade-offs</div>
           <div class="card-body">
-            Segurança não é só teoria: medimos custo real (search/fetch/decrypt) e observamos leakage (padrões de pesquisa).
+            Segurança aplicada tem custo mensurável e aqui avaliámos o impacto de search, fetch, decrypt e observamos o leakage (padrões de pesquisa).
           </div>
         </div>
       </div>
@@ -136,14 +130,14 @@
     <div class="row g-4 mt-4">
       <div class="col-lg-6">
         <div class="card h-100">
-          <div class="card-header"><i class="bi bi-diagram-3"></i> O que vais mostrar na demo</div>
+          <div class="card-header"><i class="bi bi-diagram-3"></i> O que vamos mostrar na demo</div>
           <div class="card-body">
             <ol class="mb-0">
               <li>Build & Upload (dados cifrados + índice)</li>
               <li>Pesquisa SSE (trapdoor → docIds)</li>
               <li>Descifra no cliente (resultados em claro só no cliente)</li>
               <li>Leakage (frequência de trapdoors)</li>
-              <li>Métricas (p50/p95/p99 por operação)</li>
+              <li>Distribuição de latências por operação (mediana e cauda longa)</li>
             </ol>
           </div>
         </div>
@@ -151,22 +145,17 @@
 
       <div class="col-lg-6">
         <div class="card h-100">
-          <div class="card-header"><i class="bi bi-link-45deg"></i> Acesso rápido</div>
+          <div class="card-header"><i class="bi bi-code-slash"></i> Tecnologias usadas</div>
           <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
-              <a class="btn btn-outline-light" id="btnMetrics" target="_blank" rel="noopener"><i class="bi bi-speedometer2"></i> /metrics</a>
-              <a class="btn btn-outline-light" id="btnStats" target="_blank" rel="noopener"><i class="bi bi-eye"></i> /stats</a>
-              <a class="btn btn-outline-light" id="btnClient" target="_blank" rel="noopener"><i class="bi bi-laptop"></i> /client</a>
-              <a class="btn btn-outline-light" id="btnHome" target="_blank" rel="noopener"><i class="bi bi-cloud"></i> /</a>
-            </div>
-            <div class="mt-3" style="color: #94a3b8;">
-              Estes botões abrem diretamente o protótipo no host configurado (por defeito localhost).
-            </div>
+            <ul class="mb-0">
+              <li>Python 3.10+</li>
+              <li>Flask (servidor web)</li>
+              <li>Cryptography (cifra AES-GCM, HMAC, SHA-256)</li>
+              <li>Bootstrap 5 (interface web)</li>
+              <li>RH dataset sintético (5.000 registos)</li>
+            </ul>
           </div>
         </div>
-      </div>
-    </div>
-
   </main>
 
   <footer>
