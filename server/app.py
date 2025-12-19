@@ -6,34 +6,27 @@ Guarda:
   - documentos cifrados em storage/docs/*.json
   - índice invertido por trapdoor em storage/index.json
   - estatísticas de leakage (número de pesquisas por trapdoor) em storage/stats/search_stats.json
-  - métricas do cliente em storage/stats/metrics.csv (produzido pelo cliente)
-  - métricas do servidor em storage/stats/server_metrics.csv (produzido pelo servidor)
+  - ficheiro de métricas storage/stats/metrics.csv (produzido pelo cliente)
 
 Rotas principais:
   - GET/POST /        : vista do servidor (apenas trapdoors/docIds)
   - GET       /stats  : leakage de pesquisas (trapdoors + contagens)
   - GET       /metrics: métricas de desempenho (metrics.csv)
-  - GET/POST /client  : vista do cliente (simulada; sem chave real)
+  - GET/POST /client  : vista do cliente (DEMO VISUAL: descifra só para mostrar no browser)
   - POST     /upload  : upload de índice e docs cifrados
-  - POST     /search  : pesquisa por trapdoor (por defeito devolve só docIds)
-  - GET      /doc/<id>: obter um doc cifrado (nonce+ciphertext)
+  - POST     /search  : pesquisa por trapdoor
 """
 
-import csv
 import json
 import os
-import re
-import time
-from datetime import datetime
-from threading import Lock
+import csv
+import hashlib
 from flask import Flask, request, jsonify, render_template
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 APP = Flask(__name__)
 
-# -------------------------
 # Diretórios do projeto
-# -------------------------
-
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_DIR = os.path.join(PROJECT_DIR, "storage")
 DOCS_DIR = os.path.join(STORAGE_DIR, "docs")
@@ -45,124 +38,72 @@ os.makedirs(STATS_DIR, exist_ok=True)
 INDEX_PATH = os.path.join(STORAGE_DIR, "index.json")
 SEARCH_STATS_PATH = os.path.join(STATS_DIR, "search_stats.json")
 METRICS_PATH = os.path.join(STATS_DIR, "metrics.csv")
-SERVER_METRICS_PATH = os.path.join(STATS_DIR, "server_metrics.csv")
 
-# Locks simples (úteis em modo threaded)
-INDEX_LOCK = Lock()
-STATS_LOCK = Lock()
-SERVER_METRICS_LOCK = Lock()
+# Chave mestra do "cliente real" (gerada em client.py)
+KEY_PATH = os.path.join(PROJECT_DIR, "master.key")
+
 
 # -------------------------
-# Validação e limites
+# Helpers índice cifrado
 # -------------------------
 
-# Trapdoor hex (HMAC-SHA256) costuma ter 64 hex chars; aceitamos intervalo para tolerância.
-TRAPDOOR_RE = re.compile(r"^[0-9a-fA-F]{32,256}$")
-# Doc IDs controlados (ajusta ao vosso dataset). Evita path traversal e nomes arbitrários.
-DOC_ID_RE = re.compile(r"^emp_\d{3,6}$")  # ex.: emp_001 ... emp_123456
-
-MAX_UPLOAD_TERMS = 200_000     # para demo; ajusta ao vosso caso
-MAX_UPLOAD_DOCS = 50_000
-MAX_DOCIDS_PER_TERM = 50_000   # limita listas enormes por trapdoor
-MAX_TRAPDOOR_LEN = 512         # hard cap defensivo
-
-# -------------------------
-# Helpers: I/O atómico
-# -------------------------
-
-def safe_write_json_atomic(path: str, data: dict) -> None:
-    tmp = f"{path}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp, path)
-
-def safe_read_json(path: str) -> dict:
-    if not os.path.exists(path):
+def load_index():
+    """Carrega index.json: trapdoorHex -> [docId, ...]."""
+    if not os.path.exists(INDEX_PATH):
         return {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(INDEX_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# -------------------------
-# Helpers: índice cifrado
-# -------------------------
+def save_index(index):
+    with open(INDEX_PATH, "w", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False, indent=2)
 
-def load_index() -> dict:
-    """Carrega index.json: trapdoorHex -> [docId, ...]."""
-    return safe_read_json(INDEX_PATH)
-
-def save_index(index: dict) -> None:
-    safe_write_json_atomic(INDEX_PATH, index)
 
 # -------------------------
-# Helpers: leakage pesquisas
+# Helpers leakage pesquisas
 # -------------------------
 
-def load_search_stats() -> dict:
+def load_search_stats():
     """search_stats.json: trapdoorHex -> count."""
-    return safe_read_json(SEARCH_STATS_PATH)
+    if not os.path.exists(SEARCH_STATS_PATH):
+        return {}
+    with open(SEARCH_STATS_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def save_search_stats(stats: dict) -> None:
-    safe_write_json_atomic(SEARCH_STATS_PATH, stats)
+def save_search_stats(stats):
+    with open(SEARCH_STATS_PATH, "w", encoding="utf-8") as f:
+        json.dump(stats, f, ensure_ascii=False, indent=2)
 
-# -------------------------
-# Helpers: métricas do servidor
-# -------------------------
-
-def ensure_server_metrics_header() -> None:
-    if os.path.exists(SERVER_METRICS_PATH):
-        return
-    with open(SERVER_METRICS_PATH, "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(["ts_iso", "method", "path", "status_code", "duration_ms", "remote_addr"])
-
-def append_server_metric(method: str, path: str, status_code: int, duration_ms: float, remote_addr: str) -> None:
-    with SERVER_METRICS_LOCK:
-        ensure_server_metrics_header()
-        with open(SERVER_METRICS_PATH, "a", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
-            w.writerow([datetime.utcnow().isoformat(), method, path, status_code, round(duration_ms, 3), remote_addr])
-
-@APP.before_request
-def _t0():
-    request._t0 = time.perf_counter()
-
-@APP.after_request
-def _metrics(response):
-    try:
-        t0 = getattr(request, "_t0", None)
-        if t0 is not None:
-            dt_ms = (time.perf_counter() - t0) * 1000.0
-            append_server_metric(
-                method=request.method,
-                path=request.path,
-                status_code=response.status_code,
-                duration_ms=dt_ms,
-                remote_addr=request.headers.get("X-Forwarded-For", request.remote_addr) or ""
-            )
-    except Exception:
-        # Nunca rebentar a resposta por causa de logging
-        pass
-    return response
 
 # -------------------------
-# Helpers: validação
+# Helpers "cliente" (DEMO VISUAL)
 # -------------------------
 
-def is_valid_trapdoor(t: str) -> bool:
-    if not isinstance(t, str):
-        return False
-    if len(t) == 0 or len(t) > MAX_TRAPDOOR_LEN:
-        return False
-    return bool(TRAPDOOR_RE.match(t))
+def load_master_key() -> bytes:
+    """Lê master.key se existir (gerado pelo client.py)."""
+    if not os.path.exists(KEY_PATH):
+        return b""
+    with open(KEY_PATH, "rb") as f:
+        return f.read()
 
-def is_valid_doc_id(doc_id: str) -> bool:
-    return isinstance(doc_id, str) and bool(DOC_ID_RE.match(doc_id))
+def derive_keys(master_key: bytes):
+    """
+    Derivação compatível com client.py:
+      - K_trap: trapdoors (não usado aqui)
+      - K_enc : cifragem/descifra (AES-GCM)
+    """
+    k_trap = hashlib.sha256(master_key + b"trap").digest()
+    k_enc = hashlib.sha256(master_key + b"enc").digest()
+    return k_trap, k_enc
 
-def doc_path(doc_id: str) -> str:
-    # doc_id já validado por regex; evita traversal.
-    return os.path.join(DOCS_DIR, f"{doc_id}.json")
+def decrypt_doc(k_enc: bytes, blob: dict) -> str:
+    """Descifra blob {nonce,ciphertext} usando AES-GCM."""
+    aesgcm = AESGCM(k_enc)
+    nonce = bytes.fromhex(blob["nonce"])
+    ct = bytes.fromhex(blob["ciphertext"])
+    pt = aesgcm.decrypt(nonce, ct, associated_data=None)
+    return pt.decode("utf-8")
+
 
 # -------------------------
 # Vistas HTML
@@ -172,7 +113,6 @@ def doc_path(doc_id: str) -> str:
 def home():
     """
     Vista do servidor:
-      - formulário simples
       - se receber um docId (emp_001) mostra só se existe
       - se receber um trapdoor, mostra apenas docIds associados
     """
@@ -181,20 +121,17 @@ def home():
 
     if request.method == "POST":
         term = request.form.get("term", "").strip()
+        index = load_index()
 
         if term.startswith("emp_"):
-            if is_valid_doc_id(term) and os.path.exists(doc_path(term)):
+            path = os.path.join(DOCS_DIR, f"{term}.json")
+            if os.path.exists(path):
                 results = [term]
-            else:
-                results = []
         else:
-            if is_valid_trapdoor(term):
-                index = load_index()
-                results = index.get(term, [])
-            else:
-                results = []
+            results = index.get(term, [])
 
     return render_template("home.html", term=term, results=results)
+
 
 @APP.get("/stats")
 def stats_page():
@@ -202,6 +139,7 @@ def stats_page():
     stats = load_search_stats()
     rows = sorted(stats.items(), key=lambda x: x[1], reverse=True)
     return render_template("stats.html", rows=rows)
+
 
 @APP.get("/metrics")
 def metrics_page():
@@ -220,20 +158,57 @@ def metrics_page():
 
     return render_template("metrics.html", headers=headers, rows=rows)
 
+
 @APP.route("/client", methods=["GET", "POST"])
 def client_view():
     """
-    Vista do cliente (simulada para a demo web):
-      - aqui *não* se guarda chave; a descifra real continua no client.py
-      - serve apenas para mostrar a fronteira conceptual entre servidor e cliente
+    Vista do cliente (APENAS PARA DEMO VISUAL):
+      - recebe trapdoor (hex)
+      - usa o índice local para obter docIds
+      - lê blobs cifrados do storage
+      - descifra para mostrar no browser
+
+    Nota importante:
+      - Isto NÃO é o "cliente real" do modelo de ameaça.
+      - O cliente real é o script client.py (onde a chave deve residir).
+      - Esta vista existe para visualização e demonstração rápida.
     """
     term = ""
-    docs = {}  # mantido vazio para não violar o modelo de ameaça
+    docs = {}  # docId -> plaintext
 
     if request.method == "POST":
         term = request.form.get("term", "").strip()
 
+        # 1) Lookup de docIds
+        index = load_index()
+        doc_ids = index.get(term, [])
+
+        # 2) Ler blobs cifrados
+        blobs = {}
+        for doc_id in doc_ids:
+            path = os.path.join(DOCS_DIR, f"{doc_id}.json")
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    blobs[doc_id] = json.load(f)
+
+        # 3) Leakage (contar pesquisas)
+        stats = load_search_stats()
+        stats[term] = stats.get(term, 0) + 1
+        save_search_stats(stats)
+
+        # 4) Descifrar (DEMO VISUAL)
+        master = load_master_key()
+        if master:
+            _, k_enc = derive_keys(master)
+            for doc_id, blob in blobs.items():
+                try:
+                    docs[doc_id] = decrypt_doc(k_enc, blob)
+                except Exception:
+                    # Se falhar a descifra, não quebrar a página
+                    pass
+
     return render_template("client.html", term=term, docs=docs)
+
 
 # -------------------------
 # API JSON
@@ -242,6 +217,33 @@ def client_view():
 @APP.get("/health")
 def health():
     return jsonify({"status": "ok"})
+
+@APP.get("/doc/<doc_id>")
+def get_doc(doc_id: str):
+    """
+    Endpoint usado pelo client.py para medir tempos separados (fetch por docId).
+
+    Devolve:
+      { "docId": "<id>", "blob": { "nonce": "...", "ciphertext": "..." } }
+
+    Se não existir:
+      404 { "error": "doc_not_found", "docId": "<id>" }
+    """
+    doc_id = (doc_id or "").replace(".json", "").strip()
+
+    # Defesa contra paths manhosos: só permite nomes simples
+    if "/" in doc_id or "\\" in doc_id or ".." in doc_id:
+        return jsonify({"error": "invalid_doc_id", "docId": doc_id}), 400
+
+    path = os.path.join(DOCS_DIR, f"{doc_id}.json")
+    if not os.path.exists(path):
+        return jsonify({"error": "doc_not_found", "docId": doc_id}), 404
+
+    with open(path, "r", encoding="utf-8") as f:
+        blob = json.load(f)
+
+    return jsonify({"docId": doc_id, "blob": blob})
+
 
 @APP.post("/upload")
 def upload():
@@ -254,158 +256,70 @@ def upload():
 
     Faz merge do índice e grava documentos cifrados.
     """
-    payload = request.get_json(silent=True)
-    if not isinstance(payload, dict):
-        return jsonify({"status": "error", "error": "invalid_json"}), 400
+    payload = request.get_json(force=True)
 
     index_in = payload.get("index", {})
     docs_in = payload.get("docs", {})
 
-    if not isinstance(index_in, dict) or not isinstance(docs_in, dict):
-        return jsonify({"status": "error", "error": "invalid_payload_shape"}), 400
+    # 1) Merge do índice
+    index = load_index()
+    for t, doc_ids in index_in.items():
+        if t not in index:
+            index[t] = []
+        for d in doc_ids:
+            if d not in index[t]:
+                index[t].append(d)
+    save_index(index)
 
-    if len(index_in) > MAX_UPLOAD_TERMS:
-        return jsonify({"status": "error", "error": "too_many_terms"}), 413
-
-    if len(docs_in) > MAX_UPLOAD_DOCS:
-        return jsonify({"status": "error", "error": "too_many_docs"}), 413
-
-    # 1) Merge do índice com validação
-    with INDEX_LOCK:
-        index = load_index()
-        accepted_terms = 0
-        accepted_pairs = 0
-
-        for t, doc_ids in index_in.items():
-            if not is_valid_trapdoor(t):
-                continue
-            if not isinstance(doc_ids, list):
-                continue
-
-            # filtra doc ids válidos e limita
-            filtered = []
-            for d in doc_ids[:MAX_DOCIDS_PER_TERM]:
-                if is_valid_doc_id(d):
-                    filtered.append(d)
-
-            if not filtered:
-                continue
-
-            if t not in index:
-                index[t] = []
-
-            # dedup sem perder estabilidade (bom para testes)
-            existing = set(index[t])
-            for d in filtered:
-                if d not in existing:
-                    index[t].append(d)
-                    existing.add(d)
-                    accepted_pairs += 1
-
-            accepted_terms += 1
-
-        save_index(index)
-
-    # 2) Guardar documentos cifrados (apenas doc_ids válidos)
-    accepted_docs = 0
+    # 2) Guardar documentos cifrados
     for doc_id, blob in docs_in.items():
-        if not is_valid_doc_id(doc_id):
-            continue
-        if not isinstance(blob, dict):
-            continue
-        # (Opcional) valida campos esperados
-        if "nonce" not in blob or "ciphertext" not in blob:
-            continue
-
-        path = doc_path(doc_id)
-        # escrita simples; se quiseres robustez extra, também podes fazer atómica por doc
+        path = os.path.join(DOCS_DIR, f"{doc_id}.json")
         with open(path, "w", encoding="utf-8") as f:
             json.dump(blob, f, ensure_ascii=False)
-        accepted_docs += 1
 
     return jsonify({
         "status": "ok",
         "indexed_terms_received": len(index_in),
         "docs_received": len(docs_in),
-        "accepted_terms": accepted_terms,
-        "accepted_pairs": accepted_pairs,
-        "accepted_docs": accepted_docs,
     })
+
 
 @APP.post("/search")
 def search():
     """
     Recebe:
-      { "trapdoor": "hex...", "include_docs": true/false }
+      { "trapdoor": "hex..." }
 
-    Devolve (por defeito):
-      { "docIds": [...], "count": n_pesquisas }
-
-    Se include_docs=true:
-      { "docIds": [...], "docs": {docId:{nonce,ciphertext}}, "count": ... }
+    Devolve:
+      {
+        "docIds": [docId, ...],
+        "docs":  { docId: {nonce,ciphertext}, ... },
+        "count": nº de vezes que este trapdoor foi pesquisado
+      }
     """
-    payload = request.get_json(silent=True)
-    if not isinstance(payload, dict):
-        return jsonify({"status": "error", "error": "invalid_json"}), 400
-
-    t = payload.get("trapdoor", "")
-    include_docs = bool(payload.get("include_docs", False))
-
-    if not is_valid_trapdoor(t):
-        return jsonify({"status": "error", "error": "invalid_trapdoor"}), 400
+    payload = request.get_json(force=True)
+    t = payload.get("trapdoor")
 
     index = load_index()
     doc_ids = index.get(t, [])
 
-    # Leakage stats: contar pesquisas por trapdoor (padrão de pesquisa)
-    with STATS_LOCK:
-        stats = load_search_stats()
-        stats[t] = int(stats.get(t, 0)) + 1
-        save_search_stats(stats)
-        count = stats[t]
-
-    if not include_docs:
-        return jsonify({"docIds": doc_ids, "count": count})
-
-    # Modo compatível/legado: devolver também docs cifrados
     docs_out = {}
     for doc_id in doc_ids:
-        if not is_valid_doc_id(doc_id):
-            continue
-        path = doc_path(doc_id)
+        path = os.path.join(DOCS_DIR, f"{doc_id}.json")
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
                 docs_out[doc_id] = json.load(f)
 
-    return jsonify({"docIds": doc_ids, "docs": docs_out, "count": count})
+    stats = load_search_stats()
+    stats[t] = stats.get(t, 0) + 1
+    save_search_stats(stats)
 
-@APP.get("/doc/<doc_id>")
-def get_doc(doc_id: str):
-    """
-    Devolve um único documento cifrado (nonce+ciphertext).
-    Útil para separar pesquisa (IDs) de fetch (ciphertext).
-    """
-    if not is_valid_doc_id(doc_id):
-        return jsonify({"status": "error", "error": "invalid_doc_id"}), 400
+    return jsonify({
+        "docIds": doc_ids,
+        "docs": docs_out,
+        "count": stats[t],
+    })
 
-    path = doc_path(doc_id)
-    if not os.path.exists(path):
-        return jsonify({"status": "error", "error": "not_found"}), 404
-
-    with open(path, "r", encoding="utf-8") as f:
-        blob = json.load(f)
-
-    return jsonify({"docId": doc_id, "blob": blob})
-
-# -------------------------
-# Main
-# -------------------------
 
 if __name__ == "__main__":
-    # Config por variáveis de ambiente (melhor para avaliação)
-    # Ex.: HOST=0.0.0.0 PORT=5000 DEBUG=0 python server.py
-    host = os.getenv("HOST", "127.0.0.1")
-    port = int(os.getenv("PORT", "5000"))
-    debug = os.getenv("DEBUG", "0").strip() in ("1", "true", "True", "yes", "YES")
-
-    APP.run(host=host, port=port, debug=debug, threaded=True)
+    APP.run(host="127.0.0.1", port=5000, debug=True)
