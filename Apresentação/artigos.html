@@ -50,7 +50,7 @@
         <i class="bi bi-box-arrow-up-right"></i> Abrir Protótipo (Demo)
       </a>
       <a class="btn btn-outline-light" id="btnStats" target="_blank" rel="noopener">
-        <i class="bi bi-eye"></i> Ver /stats
+        <i class="bi bi-eye"></i> Ver estatísticas de pesquisa
       </a>
     </div>
   </div>
@@ -92,18 +92,203 @@
       </div>
     </div>
 
-    <div class="mt-4">
-      <span class="badge badge-soft">Nota para defesa</span>
-      <div class="mt-2">
-        Se perguntarem “o que é leakage em SSE?”, aponta para surveys SSE
-        e para trabalhos que discutem padrões e mitigação.
+   <div class="mt-4"> 
+  </div>
+
+  <!-- FAQ / Perguntas e Respostas -->
+<div class="card shadow-soft p-4 mt-4">
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+    <div>
+      <span class="badge badge-soft">Perguntas e Respostas</span>
+      <h2 class="h5 mt-2 mb-0">FAQ — Leakage em SSE</h2>
+    </div>
+    <div class="text-md-end muted">
+      <span class="mono">RH-SecureSearch</span>
+    </div>
+  </div>
+
+  <div class="accordion" id="faqLeakage">
+    <!-- P1 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH1">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC1"
+                aria-expanded="false" aria-controls="faqC1">
+          P1: O que é leakage em SSE?
+        </button>
+      </h2>
+      <div id="faqC1" class="accordion-collapse collapse" aria-labelledby="faqH1" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> <em>Leakage</em> é informação que o servidor consegue observar
+            mesmo quando os documentos estão cifrados. Em SSE, o leakage típico é o
+            <em>search pattern</em>: quantas vezes a mesma <span class="mono">trapdoor</span> aparece
+            e que <span class="mono">docIds</span> são devolvidos. Não expõe o conteúdo em claro,
+            mas expõe <strong>padrões</strong>.
+          </p>
+        </div>
       </div>
     </div>
+
+    <!-- P2 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH2">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC2"
+                aria-expanded="false" aria-controls="faqC2">
+          P2: Que tipos de leakage existem?
+        </button>
+      </h2>
+      <div id="faqC2" class="accordion-collapse collapse" aria-labelledby="faqH2" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> Os mais referidos são:
+            <br><strong>(1)</strong> <em>Search pattern leakage</em> — repetição de trapdoors e padrões de consulta.
+            <br><strong>(2)</strong> <em>Access pattern leakage</em> — conjunto/identidade dos documentos devolvidos.
+            <br><strong>(3)</strong> <em>Frequency leakage</em> — número de resultados por palavra (pistas sobre popularidade).
+            <br>
+            Em esquemas <em>single-server</em> eficientes, isto é inerente ao modelo.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH3">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC3"
+                aria-expanded="false" aria-controls="faqC3">
+          P3: Como o servidor observa esse leakage?
+        </button>
+      </h2>
+      <div id="faqC3" class="accordion-collapse collapse" aria-labelledby="faqH3" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> O servidor observa:
+            <strong>(a)</strong> a mesma trapdoor usada várias vezes;
+            <strong>(b)</strong> o mesmo conjunto de <span class="mono">docIds</span> devolvido para essa trapdoor;
+            <strong>(c)</strong> variações no número de resultados (frequência).
+            <br>
+            Com isto, um adversário pode fazer inferências estatísticas (sem ver o conteúdo).
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH4">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC4"
+                aria-expanded="false" aria-controls="faqC4">
+          P4: Este leakage é inevitável?
+        </button>
+      </h2>
+      <div id="faqC4" class="accordion-collapse collapse" aria-labelledby="faqH4" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> Na prática, <strong>sim</strong> para SSE eficiente em <em>single server</em>.
+            Eliminar completamente exigiria técnicas do tipo PIR/ORAM, que aumentam muito o custo
+            (latência e tráfego). O nosso protótipo assume leakage e torna-o observável.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH5">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC5"
+                aria-expanded="false" aria-controls="faqC5">
+          P5: Como podem mitigar o leakage?
+        </button>
+      </h2>
+      <div id="faqC5" class="accordion-collapse collapse" aria-labelledby="faqH5" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <ul class="mb-0">
+            <li><strong>Rekeying periódico</strong>: rodar chaves e re-cifrar/reeindexar (reduz histórico observável).</li>
+            <li><strong>Padding / volume hiding</strong>: uniformizar tamanhos e adicionar entradas “dummy”.</li>
+            <li><strong>Baralhar/permutações</strong>: reduzir correlação direta docId↔palavra (com custo extra).</li>
+            <li><strong>Mais ruído / falsos positivos controlados</strong>: padrões menos “limpos”, mas pior precisão.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH6">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC6"
+                aria-expanded="false" aria-controls="faqC6">
+          P6: O protótipo mede que leakage exatamente?
+        </button>
+      </h2>
+      <div id="faqC6" class="accordion-collapse collapse" aria-labelledby="faqH6" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> O protótipo quantifica:
+            <strong>(1)</strong> nº de pesquisas por trapdoor (<em>search pattern</em>);
+            <strong>(2)</strong> tamanho e estabilidade dos conjuntos de resultados (<em>access pattern</em>);
+            <strong>(3)</strong> pistas de frequência (quantos resultados por termo).
+            Isto suporta discussão explícita do trade-off entre funcionalidade e privacidade.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="accordion-item border-0 mb-2" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH7">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC7"
+                aria-expanded="false" aria-controls="faqC7">
+          P7: Porque não usar criptografia totalmente homomórfica (FHE)?
+        </button>
+      </h2>
+      <div id="faqC7" class="accordion-collapse collapse" aria-labelledby="faqH7" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> FHE é possível em teoria, mas em cenários realistas tende a ser demasiado pesada
+            em custo computacional e latência. SSE é o compromisso mais pragmático: mantém conteúdo cifrado,
+            suporta pesquisa útil e mede explicitamente o overhead e o leakage.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P8 -->
+    <div class="accordion-item border-0" style="border-radius:14px; overflow:hidden;">
+      <h2 class="accordion-header" id="faqH8">
+        <button class="accordion-button collapsed fw-semibold" type="button"
+                data-bs-toggle="collapse" data-bs-target="#faqC8"
+                aria-expanded="false" aria-controls="faqC8">
+          P8: Isto é compatível com o RGPD?
+        </button>
+      </h2>
+      <div id="faqC8" class="accordion-collapse collapse" aria-labelledby="faqH8" data-bs-parent="#faqLeakage">
+        <div class="accordion-body">
+          <p class="mb-0">
+            <strong>R:</strong> Do ponto de vista técnico, é um exemplo de <em>privacy by design</em>:
+            o servidor não vê salários nem documentos em claro e não recebe chaves.
+            O trade-off é que permanece leakage de padrões (explicitado e medido).
+            Para RGPD, isto é significativamente melhor do que bases de dados em claro, desde que haja medidas complementares
+            (controlo de acesso, logs, rotação de chaves, políticas, etc.).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
   </main>
 
   <footer>
-    <div>RH-SecureSearch · Artigos e Referências · Apresentação</div>
-    <div class="mt-2"><a href="./index.html">Voltar ao início</a></div>
+    <div>RH-SecureSearch · SSE (Protótipo)
+      <p>versão 1.0 © 2025</p>
+    </div>
   </footer>
 
   <script>
