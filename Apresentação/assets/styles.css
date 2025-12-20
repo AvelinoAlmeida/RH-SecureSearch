@@ -155,3 +155,9 @@ footer a {
   color: var(--primary-color);
   text-decoration: none;
 }
+
+.hero-video {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
